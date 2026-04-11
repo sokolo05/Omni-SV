@@ -1,1 +1,1 @@
-Three different modal feature encodings
+Three different modal feature encoders
