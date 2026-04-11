@@ -2,8 +2,7 @@
 
 **Omni-SV** is a pioneering knowledge-guided multi-modal framework that integrates **Genomic Foundation Models (GFMs)** into high-fidelity Structural Variant (SV) filtering. By synergizing syntactic structure features, deep evolutionary semantics, and functional genomic landscapes, Omni-SV transforms SV analysis from error-prone pattern matching to deep biological semantic understanding.
 
-**Status:** Research Prototype (Based on Conference Submission)
-**Current Date:** April 11, 2026
+**Status:** Research Prototype (Based on ACMMM 2026 Conference Submission)
 
 ---
 
