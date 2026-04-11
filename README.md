@@ -91,16 +91,155 @@ pip install -r requirements.txt
 
 ## Essential Bioinformatics Dependencies
 
-| Package                                                      | Purpose                             |
-| ------------------------------------------------------------ | ----------------------------------- |
-| ![pysam](https://img.shields.io/badge/pysam-0.23.3-14a2b8?logo=python&logoColor=white) | BAM/CRAM file processing            |
-| ![biopython](https://img.shields.io/badge/biopython-1.85-14a2b8?logo=python&logoColor=white) | Sequence analysis and manipulation  |
-| ![mappy](https://img.shields.io/badge/mappy-2.30-14a2b8?logo=python&logoColor=white) | Sequence alignment and mapping      |
-| ![cuteSV](https://img.shields.io/badge/cuteSV-2.1.3-14a2b8?logo=python&logoColor=white) | SV detection and calling            |
-| ![sniffles](https://img.shields.io/badge/sniffles-2.6.3-14a2b8?logo=python&logoColor=white) | Long-read SV caller                 |
-| ![intervaltree](https://img.shields.io/badge/intervaltree-3.1.0-14a2b8?logo=python&logoColor=white) | Genomic interval handling           |
-| ![pyfaidx](https://img.shields.io/badge/pyfaidx-0.9.0.3-14a2b8?logo=python&logoColor=white) | FASTA file indexing and access      |
-| ![PyVCF3](https://img.shields.io/badge/PyVCF3-1.0.4-14a2b8?logo=python&logoColor=white) | VCF file parsing and writing        |
-| ![Truvari](https://img.shields.io/badge/Truvari-3.5.0-14a2b8?logo=python&logoColor=white) | SV benchmarking and comparison      |
-| ![Badread](https://img.shields.io/badge/Badread-0.4.0-14a2b8?logo=python&logoColor=white) | Read simulation and quality control |
-| ![SPOA](https://img.shields.io/badge/SPOA-4.1.5-14a2b8?logo=c%2B%2B&logoColor=white) | SIMD partial order alignment tool |
+| Dependency & Logo | Description |
+| :--- | :--- |
+| [![SPOA](https://img.shields.io/badge/SPOA-4.1.5-00599C?logo=c%2B%2B&logoColor=white)](https://github.com/rvaser/spoa) | SIMD partial order alignment for noise reduction |
+| [![EVO2](https://img.shields.io/badge/EVO2-v2.0-blue?logo=google-cloud&logoColor=white)](https://github.com/ArcInstitute/evo2) | GFM for evolutionary sequence embeddings |
+| [![AlphaGenome](https://img.shields.io/badge/AlphaGenome-v1.0-blue?logo=google-cloud&logoColor=white)](https://github.com/google-deepmind/alphagenome) | Genomic foundation model for functional semantics |
+| [![pysam](https://img.shields.io/badge/pysam-0.23.3-14a2b8?logo=python&logoColor=white)](https://github.com/pysam-developers/pysam) | BAM/CRAM file processing |
+| [![biopython](https://img.shields.io/badge/biopython-1.85-14a2b8?logo=python&logoColor=white)](https://github.com/biopython/biopython) | Sequence analysis and manipulation |
+| [![cuteSV](https://img.shields.io/badge/cuteSV-2.1.3-14a2b8?logo=python&logoColor=white)](https://github.com/tjiangHIT/cuteSV) | Signature-based long-read SV caller |
+| [![sniffles](https://img.shields.io/badge/sniffles-2.6.3-00599C?logo=c%2B%2B&logoColor=white)](https://github.com/fritzsedlazeck/Sniffles) | High-throughput long-read SV caller |
+| [![SVIM](https://img.shields.io/badge/SVIM-2.0.0-14a2b8?logo=python&logoColor=white)](https://github.com/eldariont/svim) | SV identification using long-read mappings |
+| [![CSV-filter](https://img.shields.io/badge/CSV--filter-v1.0-blue?logo=github&logoColor=white)](https://github.com/xcxw127/CSV-Filter) | Collaborative SV filtering baseline |
+| [![MMF-SV](https://img.shields.io/badge/MMF--SV-v1.0-blue?logo=pytorch&logoColor=white)](https://github.com/xcxw127/MMF-SV) | Multi-modal fusion for structural variation |
+| [![PyVCF3](https://img.shields.io/badge/PyVCF3-1.0.4-14a2b8?logo=python&logoColor=white)](https://github.com/jdoughertyii/PyVCF) | VCF file parsing and writing |
+| [![Truvari](https://img.shields.io/badge/Truvari-3.5.0-14a2b8?logo=python&logoColor=white)](https://github.com/ACEnglish/truvari) | SV benchmarking and comparison |
+| [![SURVIVOR](https://img.shields.io/badge/SURVIVOR-1.0.7-00599C?logo=c%2B%2B&logoColor=white)](https://github.com/fritzsedlazeck/SURVIVOR) | Tool for merging and comparing SV calls |
+
+## 🛠️ Data Preparation (Preprocessing)
+
+The Omni-SV pipeline requires a specific preprocessing stage to generate the necessary triplet features (Syntactic, Evolutionary, Functional) from raw sequencing data. This is handled by the `preprocess` mode in `OmniSV.py`.
+
+### Preprocessing Command
+
+You must run this step first to prepare the data before training or refinement.
+
+```
+python OmniSV.py preprocess \
+    <vcf_path> \
+    <bam_path> \
+    <output_dir> \
+    <reference_fasta>
+```
+
+### Arguments
+
+- `vcf_path`: Path to the input VCF file containing candidate SVs.
+- `bam_path`: Path to the input BAM alignment file.
+- `output_dir`: Directory where processed data and features will be saved.
+- `reference_fasta`: Path to the reference genome (`.fa`).
+
+### Pipeline Steps
+
+The `preprocess` mode executes the following sub-tasks sequentially:
+
+1. **Parse VCF:** Runs `parse_vcf.sh` to standardize the VCF input.
+2. **Data Preparation:** Executes `data_main.py` to generate images and initial sequence reconstructions.
+3. **Feature Extraction:**
+    - **Evo2:** Runs `evo2_encoder.py` to extract evolutionary features.
+    - **AlphaGenome:** Runs `alphagenome_encoder.py` to extract functional genomic features.
+    - **Image:** Runs `image_encoder.py` to process syntactic images.
+
+## 🚀 Model Training
+
+Once the data is preprocessed, you can train the Omni-SV model using the `train` mode. This stage utilizes the extracted features to perform 5-Fold Cross-Validation with F1-score optimization.
+
+### Training Command
+
+```
+python OmniSV.py train \
+    <label_json> \
+    <feat_dir> \
+    <save_dir> \
+    <model_name> \
+    <gpu_id>
+```
+
+### Arguments
+
+- `label_json`: Path to the JSON file containing ground truth labels (generated during preprocessing).
+- `feat_dir`: The same `<output_dir>` used in the preprocessing step. The script automatically looks for `syn_feats`, `evo_feats`, and `functional_feats` subfolders inside it.
+- `save_dir`: Directory where the trained model checkpoints will be saved.
+- `model_name`: Name of the model to be saved.
+- `gpu_id`: GPU device ID to use (e.g., `0`).
+
+### Training Details
+
+- **Optimizer:** AdamW with F1-score based checkpointing.
+- **Loss Function:** Multi-Granularity Optimization (MGO) loss.
+- **Hyperparameters:** Default epochs set to 50, batch size 64 (defined in `model_trainer.py`).
+
+## 🧪 Result Refinement
+
+The `refine` mode performs inference on new data and revises the original VCF file. It filters out false positives (MATCH) and corrects SV types (DEL/INS) based on model predictions.
+
+### Refinement Command
+
+```
+python OmniSV.py refine \
+    <feat_dir> \
+    <model_path> \
+    <vcf_to_revise> \
+    <output_vcf> \
+    <gpu_id>
+```
+
+### Arguments
+
+- `feat_dir`: Directory containing the extracted features for inference.
+- `model_path`: Path to the trained model checkpoint (`.pth`).
+- `vcf_to_revise`: Path to the original VCF file you wish to improve.
+- `output_vcf`: Path where the refined, high-fidelity VCF file will be saved.
+- `gpu_id`: GPU device ID to use.
+
+### Workflow
+
+1. **Prediction:** Runs `model_predictor.py` to generate predictions (saved as `predictions.csv`).
+2. **Revision:** Runs `revise_vcf.py` to update the VCF file based on the predictions, filtering false positives and correcting variant types.
+
+## 📦 Full Pipeline Example
+
+### Complete End-to-End Workflow
+
+```
+# Step 1: Preprocessing
+python OmniSV.py preprocess \
+    ./data/raw_calls.vcf \
+    ./data/alignments.bam \
+    ./processed_data/ \
+    ./reference/hg38.fa
+
+# Step 2: Training (optional if using pre-trained model)
+python OmniSV.py train \
+    ./processed_data/labels.json \
+    ./processed_data/ \
+    ./models/ \
+    omni_sv_model \
+    0
+
+# Step 3: Refinement
+python OmniSV.py refine \
+    ./processed_data/ \
+    ./models/omni_sv_model.pth \
+    ./data/raw_calls.vcf \
+    ./results/refined_calls.vcf \
+    0
+```
+
+## 📚 Documentation
+
+For detailed documentation on each component, please refer to the individual module documentation:
+
+- `parse_vcf.sh`: VCF parsing utility
+- `data_prepare/`: Data preprocessing modules
+- `feature_extract/`: Feature extraction pipelines
+- `model_trainer.py`: Training implementation
+- `model_predictor.py`: Inference implementation
+- `revise_vcf.py`: VCF refinement utility
+
+## 🙏 Acknowledgments
+
+- The developers of Evo2 and AlphaGenome models
+- The open-source bioinformatics community
+- The PyTorch development team
