@@ -1,9 +1,8 @@
-# Omni-SV: A Knowledge-Guided Multi-Modal Genomic Foundation Model Framework for Structural Variant Filtering
+# Omni-SVF: knowledge-guided multi-modal fusion across alignment, evolutionary, and multi-omics for long-read structural variant filtering
 
-**Omni-SV** is a pioneering knowledge-guided multi-modal framework that integrates **Genomic Foundation Models (GFMs)** into high-fidelity Structural Variant (SV) filtering. By synergizing syntactic structure features, deep evolutionary semantics, and functional genomic landscapes, Omni-SV transforms SV analysis from error-prone pattern matching to deep biological semantic understanding.
+**Omni-SVF** is a pioneering knowledge-guided multi-modal framework that integrates **Genomic Foundation Models (GFMs)** into high-fidelity Structural Variant (SV) filtering. By synergizing syntactic structure features, deep evolutionary semantics, and functional genomic landscapes, Omni-SV transforms SV analysis from error-prone pattern matching to deep biological semantic understanding.
 
-**Status:** Research Prototype (Based on ACMMM 2026 Conference Anonymous Submission Id: 9174)
-
+<!-- **Status:** Research Prototype (Based on ACMMM 2026 Conference Anonymous Submission Id: 9174) -->
 ---
 
 ## 📖 Introduction
