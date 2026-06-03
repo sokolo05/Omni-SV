@@ -30,7 +30,7 @@ The figure below illustrates the detailed workflow of data preprocessing, featur
 
 <!-- Insert Figure 2 from Paper Here -->
 <p align="center">
-  <img src="images/02.main_plot-2.png" alt="Omni-SV: Methodology Overview" width="800">
+  <img src="images/Omni-SVF.png" alt="Omni-SV: Methodology Overview" width="800">
   <br>
   <em>Figure 2: The overall architecture of Omni-SV. (a) Data preprocessing; (b) Heterogeneous modality representation; (c) EAANR; (d) Functional Landscape Modulation; (e) Optimization.</em>
 </p>
