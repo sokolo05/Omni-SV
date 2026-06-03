@@ -5,9 +5,9 @@ import torch.nn.functional as F
 from eaanr_module import EAANR
 from functional_modulator import FunctionalModulator
 
-class OmniSV(nn.Module):
+class OmniSVModel(nn.Module):
     def __init__(self, d_model=256, evo_dim=2048, omics_dim=14):
-        super(OmniSV, self).__init__()
+        super(OmniSVModel, self).__init__()
         
         # Dimensionality Alignment Projectors
         self.syn_proj = nn.Linear(512, d_model)  
@@ -52,7 +52,7 @@ class OmniSV(nn.Module):
 
 if __name__ == "__main__":
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    model = OmniSV(d_model=256).to(device)
+    model = OmniSVModel(d_model=256).to(device)
     
     # 1024 sequence length test setup
     batch_size = 16
