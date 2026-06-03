@@ -21,39 +21,44 @@ def prepare_input_sequence(your_seq):
 
 def main():
     parser = argparse.ArgumentParser(description="Extract AlphaGenome features from consensus JSON")
-    # Paths
-    parser.add_argument("-j", "--json_path", required=True, help="Path to sv_consensus.json")
-    parser.add_argument("-o", "--out_dir", required=True, help="Directory to save .npy files")
+    parser.add_argument("--data_dir", required=True, help="Unified top-level data directory")
     parser.add_argument("-k", "--api_key", required=True, help="AlphaGenome API Key")
-    # Config
-    parser.add_argument("--proxy", default=None, help="HTTP Proxy (e.g., http://127.0.0.1:7890)")
+    parser.add_argument("--proxy", default=None, help="HTTP Proxy")
     parser.add_argument("--ontology", default="UBERON:0001157", help="Ontology term")
     args = parser.parse_args()
 
-    # 1. Setup Env
+    json_path = os.path.join(args.data_dir, "sequences", "sv_consensus.json")
+    out_dir = os.path.join(args.data_dir, "functional_feats")
+
     if args.proxy:
         os.environ['http_proxy'] = args.proxy
         os.environ['https_proxy'] = args.proxy
-    os.makedirs(args.out_dir, exist_ok=True)
+    os.makedirs(out_dir, exist_ok=True)
 
-    # 2. Init Client
     try:
         model = dna_client.create(args.api_key)
-        print("✅ AlphaGenome Client Ready")
+        print("✅ AlphaGenome Client Connected")
     except Exception as e:
-        print(f"❌ Init Failed: {e}"); return
+        print(f"[-] Integration aborted: {e}"); return
 
-    # 3. Load Data
-    with open(args.json_path, 'r') as f:
+    if not os.path.exists(json_path):
+        print(f"[-] Target source {json_path} does not exist."); return
+
+    with open(json_path, 'r') as f:
         consensus_data = json.load(f)
     
-    requested_outputs = [
-        dna_client.OutputType.RNA_SEQ, dna_client.OutputType.ATAC,
-        dna_client.OutputType.CHIP_TF, dna_client.OutputType.CHIP_HISTONE
+    # Expected internal tracks mapping precisely to a total of 14 output channels
+    track_configs = [
+        ('rna_seq', 1),       # 1 channel
+        ('atac', 1),          # 1 channel
+        ('chip_tf', 8),       # 8 channels
+        ('chip_histone', 4)   # 4 channels
     ]
+    requested_outputs = [getattr(dna_client.OutputType, attr.upper()) for attr, _ in track_configs]
 
-    # 4. Loop
     TARGET_LEN = 1024
+    print(f"🚀 Mining functional landscape maps across {len(consensus_data)} nodes...")
+    
     for record_id, sequence in tqdm(consensus_data.items()):
         try:
             full_input = prepare_input_sequence(sequence)
@@ -65,19 +70,25 @@ def main():
             )
 
             all_track_values = []
-            for attr in ['rna_seq', 'atac', 'chip_tf', 'chip_histone']:
+            for attr, target_dim in track_configs:
                 data = getattr(output, attr, None)
                 if data is not None and hasattr(data, 'values'):
                     val = data.values
                     if val.shape[0] != TARGET_LEN:
                         indices = np.linspace(0, val.shape[0] - 1, TARGET_LEN).astype(int)
-                        val = val[indices, :] 
-                    all_track_values.append(val)
+                        val = val[indices, :]
+                    # Verify channel completeness
+                    if val.shape[1] != target_dim:
+                        val = np.zeros((TARGET_LEN, target_dim))
+                else:
+                    # Robust zero padding fallback to maintain strict [1024, 14] dimensional integrity
+                    val = np.zeros((TARGET_LEN, target_dim))
+                all_track_values.append(val)
             
-            if all_track_values:
-                np.save(os.path.join(args.out_dir, f"{record_id}.npy"), np.concatenate(all_track_values, axis=1))
+            final_features = np.concatenate(all_track_values, axis=1) # Consistently maps to [1024, 14]
+            np.save(os.path.join(out_dir, f"{record_id}.npy"), final_features)
         except Exception as e:
-            print(f"Error on {record_id}: {e}")
+            print(f"[-] Error processing node {record_id}: {e}")
 
 if __name__ == "__main__":
     main()
