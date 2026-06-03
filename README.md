@@ -16,18 +16,6 @@ Omni-SV addresses this by introducing a **trinitarian synergistic perception fra
 
 We introduce the **Evolutionary-Anchored Asymmetric Neural Rectification (EAANR)** mechanism, which uses evolutionary priors to dynamically audit and rectify noisy syntactic signals. This ensures robust decision-making even when physical signals are ambiguous.
 
-### Visual Representation of Modalities
-Below is the overview of the Multi-modal Co-perception Framework as described in our research:
-
-<!-- Insert Figure 1 from Paper Here -->
-<p align="center">
-  <img src="images/01.Multimodal-2.png" alt="Omni-SV: Multi-modal Co-perception Framework" width="800">
-  <br>
-  <em>Figure 1: The Multi-modal Co-perception Framework. Omni-SV synergizes syntactic structures, evolutionary semantics (Evo2), and functional genomics (AlphaGenome) for SV representation.</em>
-</p>
-
----
-
 ## 🏗️ Model Architecture
 
 The Omni-SV architecture is designed to bridge the gap between noisy genomic signals and high-level biological priors through a hierarchical integration paradigm.
