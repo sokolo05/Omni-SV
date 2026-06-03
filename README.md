@@ -15,36 +15,52 @@ Omni-SV addresses this by introducing a **trinitarian synergistic perception fra
 3.  **Functional Genomic Modality:** Utilizes **AlphaGenome** to project candidates onto high-resolution epigenetic landscapes.
 
 We introduce the **Evolutionary-Anchored Asymmetric Neural Rectification (EAANR)** mechanism, which uses evolutionary priors to dynamically audit and rectify noisy syntactic signals. This ensures robust decision-making even when physical signals are ambiguous.
+---
 
 ## 🏗️ Model Architecture
 
-The Omni-SV architecture is designed to bridge the gap between noisy genomic signals and high-level biological priors through a hierarchical integration paradigm.
-
-The pipeline consists of three stages:
-1.  **Heterogeneous Modality Representation:** Projects inputs into a unified latent space.
-2.  **EAANR Module:** Performs asymmetric rectification using evolutionary constraints.
-3.  **Multi-omics Functional Landscape Modulation:** Calibrates features against the biochemical background.
-
-### Architecture Diagram
-The figure below illustrates the detailed workflow of data preprocessing, feature representation, and optimization:
+The Omni-SVF architecture employs a hierarchical multi-modal fusion paradigm to reconcile noisy genomic alignment signals with high-order biological priors. The framework processes SV candidates through three distinct functional stages:
 
 <!-- Insert Figure 2 from Paper Here -->
 <p align="center">
   <img src="images/Omni-SVF.png" alt="Omni-SV: Methodology Overview" width="800">
   <br>
-  <em>Figure 2: The overall architecture of Omni-SV. (a) Data preprocessing; (b) Heterogeneous modality representation; (c) EAANR; (d) Functional Landscape Modulation; (e) Optimization.</em>
+  <em>Figure 1: The overall architecture of Omni-SV. (1) Heterogeneous Modality Representation; (2) Knowledge-Guided Multi-modal Fusion; (3) Optimization Strategy; (d) Functional Landscape Modulation; (e) Optimization.</em>
 </p>
+
+### 1. Heterogeneous Modality Representation
+
+The input data are projected into a unified latent space using three specialized encoders:
+
+* **Syntactic Encoder (MobileV2):** Extracts topological features from CIGAR-based syntactic images, capturing the physical alignment structure of SV candidates.
+* **Evolutionary Encoder (Evo2):** Encodes sequence-level semantics to identify evolutionary conservation patterns that distinguish genuine variants from stochastic noise.
+* **Multi-omics Encoder (AlphaGenome):** Maps consensus sequences into functional tracks, providing *in vivo* regulatory contexts such as chromatin accessibility and histone modification profiles.
+
+### 2. Knowledge-Guided Multi-modal Fusion
+
+To address the limitations of single-modality filtering, we introduce two core modules that enforce biological consistency:
+
+* **Evolutionary-Anchored Asymmetric Neural Rectification (EAANR):** This module incorporates an **Evolutionary-Consistency Attention (ECA)** mechanism and an **Entropy-Gated Rectification (EGR)** unit. By computing site-specific Shannon entropy from Evo2 logits, the EGR adaptively gates and rectifies local alignment features, effectively suppressing false positives in unstable, repetitive regions.
+* **Multi-omics Functional Landscape Modulation (MFLM):** This module grounds physical alignment trajectories within real-time biochemical context vectors. By non-linearly scaling local features ($F_{local}$) through a Softplus-activated MLP, the MFLM calibrates the final Omni-feature representation ($F_{omni}$) against the genome's regulatory logic, ensuring that high-confidence variants are substantiated by cross-disciplinary biological evidence.
+
+### 3. Optimization Strategy
+
+Omni-SVF is optimized through a multi-granularity joint loss function:
+
+
+$$\mathcal{L}_{total} = \mathcal{L}_{CE} + \lambda_1 \mathcal{L}_{cons} + \lambda_2 \mathcal{L}_{mine}$$
+
+
+This objective function balances classification accuracy ($\mathcal{L}_{CE}$) with representation consistency ($\mathcal{L}_{cons}$) and mutual information maximization ($\mathcal{L}_{mine}$), ensuring that the model learns discriminative features that are robust to sequencing artifacts.
 
 ---
 
 ## 📊 Key Features
 
-*   **🧬 Knowledge-Guided Fusion:** Unlike traditional methods, we use pre-trained Genomic Foundation Models (Evo2 and AlphaGenome) as prior knowledge to guide the filtering process.
-*   **🛡️ EAANR Mechanism:** Our proprietary Evolutionary-Anchored Asymmetric Neural Rectification module uses entropy-gating to suppress false positives in unstable genomic regions.
-*   **🌍 Cross-Species Generalization:** Validated on both *Homo sapiens* (Human) and *Arabidopsis thaliana* genomes.
-*   **⚡ Multi-Granularity Optimization:** A joint loss function that ensures representation consistency and mutual information maximization.
-
----
+* **🧬 Knowledge-Guided Fusion:** Unlike traditional methods, we use pre-trained Genomic Foundation Models (Evo2 and AlphaGenome) as prior knowledge to guide the filtering process.
+* **🛡️ EAANR Mechanism:** Our proprietary Evolutionary-Anchored Asymmetric Neural Rectification module uses entropy-gating to suppress false positives in unstable genomic regions.
+* **🌍 Cross-Species Generalization:** Validated on both *Homo sapiens* (Human) and *Arabidopsis thaliana* genomes.
+* **⚡ Multi-Granularity Optimization:** A joint loss function that ensures representation consistency and mutual information maximization.
 
 ## 🚀 Getting Started
 
