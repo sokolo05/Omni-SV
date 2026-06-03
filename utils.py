@@ -1,28 +1,39 @@
-import torch, torch.nn as nn
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
 
-def param_groups_l2(model, backbone_wd=1e-5, head_wd=1e-3, no_decay_bn_bias=True):
+def param_groups_l2_dual(model, loss_fn=None, backbone_wd=1e-5, head_wd=1e-3, no_decay_bn_bias=True):
     """
-    Return a list of parameter groups ready to be passed to the optimizer.
-    no_decay_bn_bias=True: no weight decay for BN weights and all biases.
+    Perform layer-wise L2 regularization parameter grouping optimized for the OmniSV framework.
+    Guarantees learnable loss scaling factors and normalization layers are handled safely.
     """
     backbone, head, no_decay = [], [], []
+    
+    # 1. Collect trainable parameters from the structural backbone and fusion heads
     for name, param in model.named_parameters():
         if not param.requires_grad:
             continue
-        *prefix, leaf_name = name.split('.')
+        *prefix, leaf = name.split('.')
         prefix = '.'.join(prefix)
 
-        # 1. Classification head (fc / classifier)
-        if 'fc' in prefix or 'classifier' in prefix:
+        # Route core fusion modules and classification head to the head group
+        if any(k in prefix for k in ('classifier', 'cross_attn', 'eaanr', 'f_modulator')):
             target = head
         else:
             target = backbone
 
-        # 2. No-decay list: BN weights, all biases
-        if no_decay_bn_bias and (leaf_name.endswith('bias') or 'bn' in prefix or 'BatchNorm' in prefix):
+        # Isolate Normalization (BatchNorm/LayerNorm) and all biases from weight decay
+        if no_decay_bn_bias and (leaf.endswith('bias') or 'bn' in prefix or 'BatchNorm' in prefix or 'norm' in leaf or 'LayerNorm' in prefix):
             no_decay.append(param)
         else:
             target.append(param)
+
+    # 2. Collect learnable optimization weights (lambda1/lambda2) from loss function if provided
+    if loss_fn is not None:
+        for name, param in loss_fn.named_parameters():
+            if param.requires_grad:
+                # Task scaling factors must never undergo weight decay
+                no_decay.append(param)
 
     groups = [
         {'params': backbone, 'weight_decay': backbone_wd},
@@ -31,37 +42,6 @@ def param_groups_l2(model, backbone_wd=1e-5, head_wd=1e-3, no_decay_bn_bias=True
     ]
     return groups
 
-def param_groups_l2_dual(model, backbone_wd=1e-5, head_wd=1e-3, no_decay_bn_bias=True):
-    """
-    Perform layer-wise L2 regularization parameter grouping for DualModalModel.
-    Returns groups ready to be passed to the optimizer.
-    """
-    backbone, head, no_decay = [], [], []
-    for name, param in model.named_parameters():
-        if not param.requires_grad:
-            continue
-        *prefix, leaf = name.split('.'); prefix = '.'.join(prefix)
-
-        # 1. Treat classification head / fusion layer as head
-        if any(k in prefix for k in ('classifier', 'cross_attn')):
-            target = head
-        else:  # both backbones
-            target = backbone
-
-        # 2. No decay: bias + BN + classifier dropout weights (optional)
-        if no_decay_bn_bias and (leaf.endswith('bias') or 'bn' in prefix or 'BatchNorm' in prefix):
-            no_decay.append(param)
-        else:
-            target.append(param)
-
-    groups = [
-        {'params': backbone, 'weight_decay': backbone_wd},
-        {'params': head,     'weight_decay': head_wd},
-        {'params': no_decay, 'weight_decay': 0.0}
-    ]
-    return groups
-
-# Label-smoothing loss
 class LabelSmoothCrossEntropy(nn.Module):
     def __init__(self, smoothing=0.1):
         super(LabelSmoothCrossEntropy, self).__init__()
