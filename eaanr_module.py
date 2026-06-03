@@ -13,11 +13,11 @@ class EAANR(nn.Module):
         self.norm = nn.LayerNorm(d_model)
 
     def forward(self, h_syn, h_evo, l_evo):
-        # 1. Gating Factor Calculation from Base Prediction Logits
+        # 1. Gating Factor Calculation (Shannon Entropy)
         prob = F.softmax(l_evo, dim=-1)
         entropy = -torch.sum(prob * torch.log(prob + 1e-9), dim=-1, keepdim=True)
         
-        # 2. Rectification Scaling (High entropy / uncertainty suppresses the gain factor)
+        # 2. Uncertainty Rectification (High entropy attenuates technical noise)
         gain_factor = torch.sigmoid(self.gate_net(-entropy))
         
         # 3. Asymmetric Cross-Attention (Query from Evo, Key/Value from Syn)
@@ -26,6 +26,6 @@ class EAANR(nn.Module):
         # 4. Feature Modulation (Hadamard product)
         f_modulated = h_attended * gain_factor
         
-        # 5. Residual Aggregation with Evolutionary Base
+        # 5. Residual Aggregation anchored on Evolutionary Base
         f_local = self.norm(f_modulated + h_evo)
         return f_local
